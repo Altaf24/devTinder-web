@@ -1,5 +1,5 @@
 import { useState } from "react";
-// import UserCard from "./UserCard";
+import UserCard from "./UserCard";
 import axios from "axios";
 import { BASE_URL } from "../utils/constants";
 import { useDispatch } from "react-redux";
@@ -17,30 +17,41 @@ const EditProfile = ({ user }) => {
   const [showToast, setShowToast] = useState(false);
 
   const saveProfile = async () => {
-    //Clear Errors
     setError("");
+  
+    // Create data object matching the server schema
+    const updateData = {
+      firstName,
+      lastName,
+      photoUrl,
+      gender: gender?.toLowerCase() || undefined,
+      age: age ? Number(age) : undefined,
+      about,
+      skills: ["JavaScript"] // Adding a default skill since it's required
+    };
+
     try {
       const res = await axios.patch(
         BASE_URL + "/profile/edit",
-        {
-          firstName,
-          lastName,
-          photoUrl,
-          age,
-          gender,
-          about,
-        },
-        { withCredentials: true }
+        updateData,
+        { 
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
       );
-      dispatch(addUser(res?.data?.data));
+    
+      dispatch(addUser(res.data));
       setShowToast(true);
       setTimeout(() => {
         setShowToast(false);
       }, 3000);
     } catch (err) {
-      setError(err.response.data);
+      console.log("Server response:", err.response?.data);
+      setError(err.response?.data?.message || "Update failed");
     }
-  };
+  };  
 
   return (
     <>
